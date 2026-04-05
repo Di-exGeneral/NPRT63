@@ -38,19 +38,15 @@ Written in **Placeholder**
 ## Author(s)
 
 - TLOTLISO LEDWABA - 202428830 (GROUP LEADER)
-- TLOTLO NALEDI - 202422544
-- TSEKI LEBOHANG TSEKI - 202434749
-- MERCY MOTHATA - 202419335
 
-Lecturer: Melvin Kisten
+
+#### Lecturer: Melvin Kisten
 
 [Melvin Kisten](https://github.com/iammelvink 'Melvin Kisten\'s GitHub page')
 
 GitHub: @"Group members"
 - https://github.com/Di-exGeneral
--  
--
--
+
 
 LinkedIn: [Melvin Kisten](https://www.linkedin.com/in/iammelvink 'Melvin Kisten\'s LinkedIn page')
 
