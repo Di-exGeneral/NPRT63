@@ -38,6 +38,7 @@ Written in **Placeholder**
 ## Author(s)
 
 - TLOTLISO LEDWABA - 202428830 (GROUP LEADER)
+- MERCY MOTHATA - 202419335 
 
 
 #### Lecturer: Melvin Kisten
@@ -46,6 +47,7 @@ Written in **Placeholder**
 
 GitHub: @"Group members"
 - https://github.com/Di-exGeneral
+- https://github.com/cipherMuse22
 
 
 LinkedIn: [Melvin Kisten](https://www.linkedin.com/in/iammelvink 'Melvin Kisten\'s LinkedIn page')
