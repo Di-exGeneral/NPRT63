@@ -6,10 +6,12 @@
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-Follow%20%40iammelvink-blue.svg?style=social&logo=linkedin)](https://www.linkedin.com/in/iammelvink)
 
 ## Overview
+HydroAlert is a cross-platform application designed to bridge the communication gap between South African municipalities and their communities by providing timely water outage notifications and a structured platform for reporting water-related faults. Residents receive SMS alerts before planned outages, view area-specific schedules, and submit fault reports with photos and location details directly through the mobile app. Municipal administrators manage outage schedules and oversee fault reports through a desktop interface, while maintenance teams receive assigned tasks and update resolution progress in real time. IT staff monitor system performance, manage users, and handle bug reports to ensure the platform remains stable and reliable. Built with Flutter, FastAPI, and AWS, HydroAlert replaces the fragmented, unreliable communication methods currently used by municipalities with a single, organised, and accountable system.
+
 
 This is the codebase produced for the Project course
 
-Written in **Placeholder**
+Written in **Flutter and Python**
 
 1. Methodologies/Project Management:
 
@@ -22,7 +24,8 @@ Written in **Placeholder**
 
 3. Programming Languages/Frameworks:
 
-   - Placeholder
+   - Flutter (Dart)
+   - Python
 
 ## Instructions
 
@@ -46,9 +49,8 @@ Written in **Placeholder**
 [Melvin Kisten](https://github.com/iammelvink 'Melvin Kisten\'s GitHub page')
 
 GitHub: @"Group members"
-- https://github.com/Di-exGeneral
-- https://github.com/cipherMuse22
-
+- [Tlotliso Ledwaba](https://github.com/Di-exGeneral')
+- [Mercy Mothata](https://github.com/cipherMuse22')
 
 LinkedIn: [Melvin Kisten](https://www.linkedin.com/in/iammelvink 'Melvin Kisten\'s LinkedIn page')
 
