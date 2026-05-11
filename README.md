@@ -49,8 +49,8 @@ Written in **Flutter and Python**
 [Melvin Kisten](https://github.com/iammelvink 'Melvin Kisten\'s GitHub page')
 
 GitHub: @"Group members"
-- [Tlotliso Ledwaba](https://github.com/Di-exGeneral')
-- [Mercy Mothata](https://github.com/cipherMuse22')
+- [Tlotliso Ledwaba](https://github.com/Di-exGeneral)
+- [Mercy Mothata](https://github.com/cipherMuse22)
 
 LinkedIn: [Melvin Kisten](https://www.linkedin.com/in/iammelvink 'Melvin Kisten\'s LinkedIn page')
 
