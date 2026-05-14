@@ -10,3 +10,4 @@ python-dotenv
 bcrypt
 pydantic
 pytest
+httpx
