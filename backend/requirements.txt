@@ -9,3 +9,4 @@ boto3
 python-dotenv
 bcrypt
 pydantic
+pytest
