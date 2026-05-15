@@ -8,6 +8,7 @@ python-multipart
 boto3
 python-dotenv
 bcrypt
-pydantic
 pytest
 httpx
+email-validator
+pydantic[email]
