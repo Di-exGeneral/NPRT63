@@ -1,10 +1,17 @@
 from fastapi import FastAPI
-from app.routes import auth, users, areas, fault_reports, outage_schedules, maintenance, bug_reports, audit_logs
+from app.routes import auth
+from app.routes import user
+from app.routes import areas
+from app.routes import fault_reports
+from app.routes import outage_schedules
+from app.routes import maintenance
+from app.routes import bug_reports
+from app.routes import audit_logs
 
 app = FastAPI(title="HydroAlert API", version="1.0.0")
 
 app.include_router(auth.router, prefix="/auth", tags=["Authentication"])
-app.include_router(users.router, prefix="/users", tags=["Users"])
+app.include_router(user.router, prefix="/users", tags=["Users"])
 app.include_router(areas.router, prefix="/areas", tags=["Areas"])
 app.include_router(fault_reports.router, prefix="/fault-reports", tags=["Fault Reports"])
 app.include_router(outage_schedules.router, prefix="/outage-schedules", tags=["Outage Schedules"])

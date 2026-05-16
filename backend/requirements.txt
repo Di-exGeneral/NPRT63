@@ -7,7 +7,8 @@ passlib
 python-multipart
 boto3
 python-dotenv
-bcrypt
-pydantic
+bcrypt==4.0.1
 pytest
 httpx
+email-validator
+pydantic[email]

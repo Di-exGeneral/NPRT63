@@ -10,4 +10,4 @@ class OutageSchedule(Base):
     endTime = Column(DateTime, nullable=False)
     description = Column(Text, nullable=True)
     status = Column(String(50), nullable=False)
-    createdBy = Column(String(36), ForeignKey("users.userID"), nullable=False)
+    createdBy = Column(String(36), ForeignKey("users.userid"), nullable=False)

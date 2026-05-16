@@ -9,5 +9,5 @@ class ReportHistory(Base):
     reportID = Column(String(36), ForeignKey("faultreport.reportID"), nullable=False)
     previousStatus = Column(String(50), nullable=False)
     newStatus = Column(String(50), nullable=False)
-    changedBy = Column(String(36), ForeignKey("users.userID"), nullable=False)
+    changedBy = Column(String(36), ForeignKey("users.userid"), nullable=False)
     changedAt = Column(DateTime, server_default=func.now(), nullable=False)
