@@ -5,7 +5,7 @@ import uuid
 
 def create_area(db: Session, area: AreaCreate) -> Area:
     new_area = Area(
-        areaID=str(uuid.uuid4()),
+        areaID=area.areaID,
         suburbName=area.suburbName,
         municipalityName=area.municipalityName
     )

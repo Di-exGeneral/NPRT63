@@ -14,6 +14,38 @@ def create_user(db: Session, user: UserCreate) -> User:
         role=user.role
     )
     db.add(new_user)
+    db.flush()
+
+    if user.role == "Resident":
+        from app.models.resident import Resident
+        profile = Resident(
+            residentID=str(uuid.uuid4()),
+            userID=new_user.userID,
+            areaID=None
+        )
+        db.add(profile)
+    elif user.role == "MunicipalAdmin":
+        from app.models.municipal_administrator import MunicipalAdministrator
+        profile = MunicipalAdministrator(
+            adminID=str(uuid.uuid4()),
+            userID=new_user.userID
+        )
+        db.add(profile)
+    elif user.role == "MaintenanceTeam":
+        from app.models.maintenance_team import MaintenanceTeam
+        profile = MaintenanceTeam(
+            teamID=str(uuid.uuid4()),
+            userID=new_user.userID
+        )
+        db.add(profile)
+    elif user.role == "ITStaff":
+        from app.models.it_staff import ITStaff
+        profile = ITStaff(
+            staffID=str(uuid.uuid4()),
+            userID=new_user.userID
+        )
+        db.add(profile)
+
     db.commit()
     db.refresh(new_user)
     return new_user

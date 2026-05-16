@@ -6,8 +6,8 @@ class BugReport(Base):
     __tablename__ = "bugreport"
 
     bugID = Column(String(36), primary_key=True, nullable=False)
-    userID = Column(String(36), ForeignKey("users.userID"), nullable=False)
-    managedBy = Column(String(36), ForeignKey("users.userID"), nullable=True)
+    userID = Column(String(36), ForeignKey("users.userid"), nullable=False)
+    managedBy = Column(String(36), ForeignKey("users.userid"), nullable=True)
     title = Column(String(150), nullable=False)
     description = Column(Text, nullable=False)
     screenshot = Column(String(500), nullable=True)

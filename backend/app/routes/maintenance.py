@@ -8,7 +8,13 @@ router = APIRouter()
 
 @router.post("/assign", dependencies=[Depends(require_role("MunicipalAdmin"))])
 def assign_team(reportID: str, teamID: str, assignedBy: str, db: Session = Depends(get_db)):
-    return create_assignment(db, reportID, teamID, assignedBy)
+    from fastapi import HTTPException
+    from sqlalchemy.exc import IntegrityError
+    try:
+        return create_assignment(db, reportID, teamID, assignedBy)
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=404, detail="Report or team not found")
 
 @router.get("/team/{teamID}", dependencies=[Depends(require_role("MaintenanceTeam", "MunicipalAdmin"))])
 def get_team_assignments(teamID: str, db: Session = Depends(get_db)):

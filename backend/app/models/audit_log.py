@@ -6,7 +6,7 @@ class AuditLog(Base):
     __tablename__ = "auditlog"
 
     logID = Column(String(36), primary_key=True, nullable=False)
-    userID = Column(String(36), ForeignKey("users.userID"), nullable=False)
+    userID = Column(String(36), ForeignKey("users.userid"), nullable=False)
     action = Column(String(255), nullable=False)
     timestamp = Column(DateTime, server_default=func.now(), nullable=False)
     details = Column(Text, nullable=True)
