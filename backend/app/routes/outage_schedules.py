@@ -5,6 +5,9 @@ from app.schemas.outage_schedule import OutageScheduleCreate, OutageScheduleUpda
 from app.services.outage_schedule_service import create_outage_schedule, get_all_schedules, get_schedules_by_area, get_schedule_by_id, update_schedule_status, delete_schedule
 from app.services.audit_service import log_action
 from app.middleware.auth_middleware import get_current_user, require_role
+from app.models.resident import Resident
+from app.models.user import User
+from app.services.sns_service import send_sms
 
 router = APIRouter()
 
@@ -12,6 +15,14 @@ router = APIRouter()
 def add_schedule(schedule: OutageScheduleCreate, db: Session = Depends(get_db), current_user: dict = Depends(require_role("MunicipalAdmin"))):
     new_schedule = create_outage_schedule(db, schedule)
     log_action(db, current_user["sub"], "OUTAGE_SCHEDULE_CREATED", f"ScheduleID: {schedule.scheduleID}, Area: {schedule.areaID}")
+    residents = db.query(Resident).filter(Resident.areaID == schedule.areaID).all()
+    for resident in residents:
+        user = db.query(User).filter(User.userID == resident.userID).first()
+        if user and user.phoneNumber:
+            try:
+                send_sms(user.phoneNumber, f"HydroAlert: Water outage scheduled for your area from {schedule.startTime} to {schedule.endTime}. {schedule.description}")
+            except Exception:
+                pass
     return new_schedule
 
 @router.get("/", dependencies=[Depends(get_current_user)])
@@ -31,7 +42,19 @@ def get_schedule(scheduleID: str, db: Session = Depends(get_db)):
 
 @router.patch("/{scheduleID}/status")
 def update_status(scheduleID: str, update: OutageScheduleUpdate, db: Session = Depends(get_db), current_user: dict = Depends(require_role("MunicipalAdmin"))):
-    return update_schedule_status(db, scheduleID, update.status)
+    result = update_schedule_status(db, scheduleID, update.status)
+    from app.models.outage_schedule import OutageSchedule
+    schedule = db.query(OutageSchedule).filter(OutageSchedule.scheduleID == scheduleID).first()
+    if schedule:
+        residents = db.query(Resident).filter(Resident.areaID == schedule.areaID).all()
+        for resident in residents:
+            user = db.query(User).filter(User.userID == resident.userID).first()
+            if user and user.phoneNumber:
+                try:
+                    send_sms(user.phoneNumber, f"HydroAlert: Outage schedule {scheduleID} status updated to {update.status}.")
+                except Exception:
+                    pass
+    return result
 
 @router.delete("/{scheduleID}")
 def remove_schedule(scheduleID: str, db: Session = Depends(get_db), current_user: dict = Depends(require_role("MunicipalAdmin", "ITStaff"))):
