@@ -10,9 +10,24 @@ router = APIRouter()
 
 @router.post("/assign")
 def assign_team(reportID: str, teamID: str, assignedBy: str, db: Session = Depends(get_db), current_user: dict = Depends(require_role("MunicipalAdmin"))):
+    from sqlalchemy.exc import IntegrityError
+    from app.models.fault_report import FaultReport
+    from app.models.resident import Resident
+    from app.models.user import User
+    from app.services.sns_service import send_sms
     try:
         result = create_assignment(db, reportID, teamID, assignedBy)
         log_action(db, current_user["sub"], "MAINTENANCE_ASSIGNED", f"ReportID: {reportID}, TeamID: {teamID}")
+        report = db.query(FaultReport).filter(FaultReport.reportID == reportID).first()
+        if report:
+            resident = db.query(Resident).filter(Resident.residentID == report.residentID).first()
+            if resident:
+                user = db.query(User).filter(User.userID == resident.userID).first()
+                if user and user.phoneNumber:
+                    try:
+                        send_sms(user.phoneNumber, f"HydroAlert: Your fault report {reportID} status has been updated to Team Assigned.")
+                    except Exception:
+                        pass
         return result
     except IntegrityError:
         db.rollback()
