@@ -37,6 +37,47 @@ Written in **Flutter and Python**
    ```sh
    git clone https://github.com/iammelvink/NPRT63.git --depth=1
    ```
+## Backend Setup
+
+### Prerequisites
+- Python 3.11+
+- pip
+
+### Steps
+
+1. Navigate to the backend directory
+```sh
+   cd NPRT63/backend
+```
+
+2. Create a virtual environment
+```sh
+   python -m venv venv
+```
+
+3. Activate the virtual environment
+
+   **Linux/Mac:**
+```sh
+   source venv/bin/activate
+```
+
+   **Windows:**
+```sh
+   venv\Scripts\activate
+```
+
+4. Install dependencies
+```sh
+   pip install -r requirements.txt
+```
+
+5. Run the backend
+```sh
+   python -m uvicorn main:app --reload
+```
+
+6. Open your browser and go to `http://127.0.0.1:8000/docs` to view the API documentation
 
 ## Author(s)
 
