@@ -14,11 +14,11 @@ def add_area(area: AreaCreate, db: Session = Depends(get_db), current_user: dict
     log_action(db, current_user["sub"], "AREA_CREATED", f"AreaID: {area.areaID}, Suburb: {area.suburbName}")
     return new_area
 
-@router.get("/", dependencies=[Depends(get_current_user)])
+@router.get("/")
 def list_areas(db: Session = Depends(get_db)):
     return get_all_areas(db)
 
-@router.get("/{areaID}", dependencies=[Depends(get_current_user)])
+@router.get("/{areaID}")
 def get_area(areaID: str, db: Session = Depends(get_db)):
     area = get_area_by_id(db, areaID)
     if not area:
