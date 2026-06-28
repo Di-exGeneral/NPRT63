@@ -9,10 +9,12 @@ def create_fault_report(db: Session, report: FaultReportCreate) -> FaultReport:
         reportID=str(uuid.uuid4()),
         residentID=report.residentID,
         areaID=report.areaID,
+        title=report.title,
         description=report.description,
         status="Submitted",
         location=report.location
     )
+
     db.add(new_report)
     db.commit()
     db.refresh(new_report)
