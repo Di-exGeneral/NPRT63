@@ -5,6 +5,7 @@ from app.database import Base
 class FaultReport(Base):
     __tablename__ = "faultreport"
 
+    title = Column(String(255), nullable=False, server_default='Untitled')
     reportID = Column(String(36), primary_key=True, nullable=False)
     residentID = Column(String(36), ForeignKey("residents.residentID"), nullable=False)
     areaID = Column(String(36), ForeignKey("area.areaID"), nullable=False)

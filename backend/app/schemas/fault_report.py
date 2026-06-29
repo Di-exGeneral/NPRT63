@@ -3,6 +3,7 @@ from typing import Optional
 from datetime import datetime
 
 class FaultReportCreate(BaseModel):
+    title: str
     reportID: str
     residentID: str
     areaID: str
@@ -13,6 +14,7 @@ class FaultReportUpdate(BaseModel):
     status: str
 
 class FaultReportResponse(BaseModel):
+    title: str
     reportID: str
     residentID: str
     areaID: str
