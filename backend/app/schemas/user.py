@@ -26,3 +26,7 @@ class TokenResponse(BaseModel):
     access_token: str
     token_type: str
     role: str
+
+class UserUpdate(BaseModel):
+    username: Optional[str] = None
+    phoneNumber: Optional[str] = None
