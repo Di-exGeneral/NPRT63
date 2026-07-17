@@ -5,13 +5,14 @@ from app.schemas.fault_report import FaultReportCreate, FaultReportUpdate
 from app.services.fault_report_service import create_fault_report, get_all_fault_reports, get_fault_report_by_id, get_reports_by_resident, update_fault_report_status, get_report_history
 from app.services.s3_service import upload_photo
 from app.services.audit_service import log_action
+from app.services.notification_service import create_notification
 from app.middleware.auth_middleware import get_current_user, require_role
 from app.models.photo import Photo
-import uuid
 from app.models.resident import Resident
 from app.models.user import User
 from app.models.fault_report import FaultReport
 from app.services.sns_service import send_sms
+import uuid
 
 router = APIRouter()
 
@@ -22,11 +23,13 @@ def submit_report(report: FaultReportCreate, db: Session = Depends(get_db), curr
     resident = db.query(Resident).filter(Resident.residentID == report.residentID).first()
     if resident:
         user = db.query(User).filter(User.userID == resident.userID).first()
-        if user and user.phoneNumber:
-            try:
-                send_sms(user.phoneNumber, f"HydroAlert: Your fault report has been submitted successfully. Reference: {new_report.reportID}.")
-            except Exception:
-                pass
+        if user:
+            if user.phoneNumber:
+                try:
+                    send_sms(user.phoneNumber, f"HydroAlert: Your fault report has been submitted successfully. Reference: {new_report.reportID}.")
+                except Exception:
+                    pass
+            create_notification(db, user.userID, "Report Submitted", f"Your fault report has been submitted successfully. Reference: {new_report.reportID}.", "report")
     return new_report
 
 @router.get("/", dependencies=[Depends(require_role("MunicipalAdmin", "ITStaff"))])
@@ -53,11 +56,13 @@ def update_status(reportID: str, update: FaultReportUpdate, changedBy: str, db: 
         resident = db.query(Resident).filter(Resident.residentID == report.residentID).first()
         if resident:
             user = db.query(User).filter(User.userID == resident.userID).first()
-            if user and user.phoneNumber:
-                try:
-                    send_sms(user.phoneNumber, f"HydroAlert: Your fault report {reportID} status has been updated to {update.status}.")
-                except Exception:
-                    pass
+            if user:
+                if user.phoneNumber:
+                    try:
+                        send_sms(user.phoneNumber, f"HydroAlert: Your fault report {reportID} status has been updated to {update.status}.")
+                    except Exception:
+                        pass
+                create_notification(db, user.userID, "Report Status Updated", f"Your fault report status has been updated to {update.status}.", "report")
     return result
 
 @router.get("/{reportID}/history", dependencies=[Depends(get_current_user)])
