@@ -24,3 +24,14 @@ def get_area(areaID: str, db: Session = Depends(get_db)):
     if not area:
         raise HTTPException(status_code=404, detail="Area not found")
     return area
+
+@router.patch("/me/area")
+def update_my_area(data: dict, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
+    from app.models.resident import Resident
+    resident = db.query(Resident).filter(Resident.userID == current_user["sub"]).first()
+    if not resident:
+        raise HTTPException(status_code=404, detail="Resident not found")
+    resident.areaID = data.get("areaID")
+    db.commit()
+    db.refresh(resident)
+    return resident
