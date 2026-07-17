@@ -11,12 +11,14 @@ router = APIRouter()
 def list_users(db: Session = Depends(get_db)):
     return get_all_users(db)
 
+
 @router.get("/me", dependencies=[Depends(get_current_user)])
 def get_me(db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     user = get_user_by_id(db, current_user["sub"])
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     return user
+
 
 @router.get("/me/resident", dependencies=[Depends(get_current_user)])
 def get_my_resident_profile(db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
@@ -45,6 +47,7 @@ def get_user(userID: str, db: Session = Depends(get_db)):
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     return user
+
 
 @router.delete("/{userID}", dependencies=[Depends(require_role("ITStaff"))])
 def remove_user(userID: str, db: Session = Depends(get_db)):

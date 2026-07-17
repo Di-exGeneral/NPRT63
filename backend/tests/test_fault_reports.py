@@ -42,12 +42,13 @@ def test_submit_fault_report(client):
     resident_id = get_resident_id(client, email)
     assert resident_id is not None, "Resident record was not created on registration"
     response = client.post("/fault-reports/", json={
-        "reportID": report_id,
-        "residentID": resident_id,
-        "areaID": area_id,
-        "description": "Burst pipe on main street",
-        "location": "123 Main Street"
-    }, headers={"Authorization": f"Bearer {token}"})
+    "reportID": report_id,
+    "residentID": resident_id,
+    "areaID": area_id,
+    "title": "Burst Pipe",
+    "description": "Burst pipe on main street",
+    "location": "123 Main Street"
+}, headers={"Authorization": f"Bearer {token}"})
     assert response.status_code == 200
 
 def test_list_fault_reports_as_admin(client):
