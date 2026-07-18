@@ -58,4 +58,3 @@ jobs:
 
   
             pip install -r requirements.txt
-            sudo systemctl restart NPRT63
