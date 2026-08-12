@@ -3,10 +3,12 @@ import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import '../../constants/app_colors.dart';
+import '../../services/api_service.dart';
 import '../../services/fault_report_provider.dart';
 import '../../services/area_provider.dart';
 import '../../services/auth_provider.dart';
 import 'report_submitted_screen.dart';
+import 'package:dio/dio.dart';
 
 class ReportIssueScreen extends StatefulWidget {
   const ReportIssueScreen({super.key});
@@ -67,6 +69,19 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
     );
     if (!mounted) return;
     if (success) {
+      final report = context.read<FaultReportProvider>().reports.first;
+      if (_selectedImage != null) {
+        try {
+          final api = ApiService();
+          final formData = FormData.fromMap({
+            'file': await MultipartFile.fromFile(_selectedImage!.path),
+          });
+          await api.post('/fault-reports/${report.id}/photos', data: formData);
+        } catch (e) {
+          print('Photo upload failed: $e');
+        }
+      }
+      if (!mounted) return;
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (_) => const ReportSubmittedScreen()),
