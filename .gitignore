@@ -1571,6 +1571,10 @@ FodyWeavers.xsd
 *py-imp/code/machines/Assets/EDA/*
 *py-imp/code/pump/Assets/EDA/*
 */data/*
+
+# Allow Flutter source code inside lib/data
+!lib/data/
+!lib/data/**
 *data/*
 
 *dedup*
