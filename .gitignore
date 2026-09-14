@@ -1153,7 +1153,7 @@ google-services.json
 docs/_book
 
 # TODO: where does this rule come from?
-test/
+# test/ (Commented out to allow Flutter test directory)
 
 ### Vuejs ###
 # Recommended template: Node.gitignore
@@ -1575,6 +1575,9 @@ FodyWeavers.xsd
 # Allow Flutter source code inside lib/data
 !lib/data/
 !lib/data/**
+# Allow Flutter tests
+!test/
+!test/**
 *data/*
 
 *dedup*

@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:hydroalert_reports/data/repositories/fault_report_repository.dart';
 import 'package:hydroalert_reports/domain/models/fault_report.dart';
+import 'package:hydroalert_reports/domain/models/user_role.dart';
 
 enum AppScreen {
   dashboard,
@@ -19,11 +20,13 @@ enum SortOption {
 }
 
 class ReportsViewModel extends ChangeNotifier {
-  final FaultReportRepository _repository;
+  final FaultReportRepository repository;
+  UserRole _currentUserRole;
 
-  ReportsViewModel({required FaultReportRepository repository})
-      // ignore: prefer_initializing_formals
-      : _repository = repository {
+  ReportsViewModel({
+    required this.repository,
+    UserRole userRole = UserRole.maintenance,
+  })  : _currentUserRole = userRole {
     _loadReports();
   }
 
@@ -34,6 +37,14 @@ class ReportsViewModel extends ChangeNotifier {
   ReportPriority? _selectedPriorityFilter;
   SortOption _sortOption = SortOption.defaultOrder;
   FaultReport? _selectedReport;
+  bool _isLoading = false;
+  String? _errorMessage;
+
+  UserRole get currentUserRole => _currentUserRole;
+  bool get isAdmin => _currentUserRole.isAdmin;
+  bool get canCreateFaultReport => _currentUserRole.canCreateFaultReport;
+  bool get isLoading => _isLoading;
+  String? get errorMessage => _errorMessage;
 
   AppScreen get currentScreen => _currentScreen;
   List<FaultReport> get allReports => _allReports;
@@ -42,6 +53,11 @@ class ReportsViewModel extends ChangeNotifier {
   ReportPriority? get selectedPriorityFilter => _selectedPriorityFilter;
   SortOption get sortOption => _sortOption;
   FaultReport? get selectedReport => _selectedReport;
+
+  void setUserRole(UserRole role) {
+    _currentUserRole = role;
+    notifyListeners();
+  }
 
   int get totalCount => _allReports.length;
 
@@ -55,9 +71,9 @@ class ReportsViewModel extends ChangeNotifier {
   }
 
   void _loadReports() {
-    _allReports = _repository.getReports();
+    _allReports = repository.getReports();
     if (_selectedReport != null) {
-      _selectedReport = _repository.getReportById(_selectedReport!.id);
+      _selectedReport = repository.getReportById(_selectedReport!.id);
     }
     notifyListeners();
   }
@@ -101,12 +117,49 @@ class ReportsViewModel extends ChangeNotifier {
   }
 
   void updateReportStatus(String id, ReportStatus newStatus) {
-    _repository.updateReportStatus(id, newStatus);
+    repository.updateReportStatus(id, newStatus);
     _loadReports();
   }
 
+  Future<void> updateReportStatusOnApi(String id, ReportStatus newStatus) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+    try {
+      await repository.updateReportStatusOnApi(
+        id,
+        newStatus,
+        changedBy: _currentUserRole.label,
+      );
+      _loadReports();
+    } catch (e) {
+      _errorMessage = e.toString();
+      notifyListeners();
+      rethrow;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> fetchReportsFromApi() async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+    try {
+      await repository.fetchReportsFromApi();
+      _loadReports();
+    } catch (e) {
+      _errorMessage = e.toString();
+      notifyListeners();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
   void verifyReport(String id) {
-    _repository.verifyReport(id);
+    repository.verifyReport(id);
     _loadReports();
   }
 
@@ -120,6 +173,9 @@ class ReportsViewModel extends ChangeNotifier {
     required ReportStatus status,
     required ReportPriority priority,
   }) {
+    if (isAdmin || !canCreateFaultReport) {
+      throw StateError('Admin users are not permitted to create fault reports.');
+    }
     final newId = 'REP-${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}';
     final report = FaultReport(
       id: newId,
@@ -132,7 +188,7 @@ class ReportsViewModel extends ChangeNotifier {
       status: status,
       priority: priority,
     );
-    _repository.addReport(report);
+    repository.addReport(report);
     _loadReports();
   }
 
@@ -140,7 +196,7 @@ class ReportsViewModel extends ChangeNotifier {
     if (_selectedReport?.id == id) {
       _selectedReport = null;
     }
-    _repository.deleteReport(id);
+    repository.deleteReport(id);
     _loadReports();
   }
 

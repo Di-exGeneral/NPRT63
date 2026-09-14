@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hydroalert_reports/domain/models/fault_report.dart';
+import 'package:hydroalert_reports/domain/models/user_role.dart';
 import 'package:hydroalert_reports/ui/core/theme.dart';
 import 'package:hydroalert_reports/ui/core/widgets/priority_badge.dart';
 import 'package:hydroalert_reports/ui/core/widgets/status_badge.dart';
@@ -189,43 +190,55 @@ class MainDashboardView extends StatelessWidget {
               if (!isCompact) ...[
                 const SizedBox(width: 14),
                 // User Pill
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF9FAFB),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: AppColors.border, width: 1),
-                  ),
-                  child: const Row(
-                    children: [
-                      Icon(
-                        Icons.person_outline_rounded,
-                        size: 20,
-                        color: AppColors.textSecondary,
+                InkWell(
+                  borderRadius: BorderRadius.circular(8),
+                  onTap: () {
+                    final nextRole = viewModel.isAdmin ? UserRole.maintenance : UserRole.admin;
+                    viewModel.setUserRole(nextRole);
+                  },
+                  child: Tooltip(
+                    message: 'Click to switch role (${viewModel.isAdmin ? "Switch to Maintenance" : "Switch to Administrator"})',
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF9FAFB),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: AppColors.border, width: 1),
                       ),
-                      SizedBox(width: 8),
-                      Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      child: Row(
                         children: [
-                          Text(
-                            'Maintenance User',
-                            style: TextStyle(
-                              fontSize: 12.5,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.textPrimary,
-                            ),
+                          const Icon(
+                            Icons.person_outline_rounded,
+                            size: 20,
+                            color: AppColors.textSecondary,
                           ),
-                          Text(
-                            'user@example.com',
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: AppColors.textMuted,
-                            ),
+                          const SizedBox(width: 8),
+                          Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                viewModel.currentUserRole.label,
+                                style: const TextStyle(
+                                  fontSize: 12.5,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.textPrimary,
+                                ),
+                              ),
+                              const Text(
+                                'user@example.com',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: AppColors.textMuted,
+                                ),
+                              ),
+                            ],
                           ),
+                          const SizedBox(width: 6),
+                          const Icon(Icons.swap_horiz_rounded, size: 16, color: AppColors.textLight),
                         ],
                       ),
-                    ],
+                    ),
                   ),
                 ),
               ],
@@ -614,16 +627,18 @@ class MainDashboardView extends StatelessWidget {
               color: AppColors.textPrimary,
             ),
           ),
-          const SizedBox(height: 14),
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton.icon(
-              onPressed: () => NewReportDialog.show(context, viewModel),
-              icon: const Icon(Icons.add_rounded, size: 18),
-              label: const Text('Log New Fault Ticket'),
+          if (!viewModel.isAdmin) ...[
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                key: const ValueKey('quick_action_log_fault_button'),
+                onPressed: () => NewReportDialog.show(context, viewModel),
+                icon: const Icon(Icons.add_rounded, size: 18),
+                label: const Text('Log New Fault Ticket'),
+              ),
             ),
-          ),
-          const SizedBox(height: 10),
+            const SizedBox(height: 10),
+          ],
           SizedBox(
             width: double.infinity,
             child: OutlinedButton.icon(

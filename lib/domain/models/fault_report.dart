@@ -88,4 +88,33 @@ class FaultReport {
       priority: priority ?? this.priority,
     );
   }
+
+  factory FaultReport.fromJson(Map<String, dynamic> json) {
+    return FaultReport(
+      id: json['id']?.toString() ?? json['reportID']?.toString() ?? '',
+      title: json['title']?.toString() ?? 'Fault Report',
+      location: json['location']?.toString() ?? '',
+      description: json['description']?.toString() ?? '',
+      reportedBy: json['reportedBy']?.toString() ?? json['residentID']?.toString() ?? 'Maintenance User',
+      reportedDate: json['reportedDate']?.toString() ?? json['timestamp']?.toString() ?? '',
+      dueDate: json['dueDate']?.toString() ?? '',
+      status: ReportStatus.fromString(json['status']?.toString() ?? 'pending'),
+      priority: ReportPriority.fromString(json['priority']?.toString() ?? 'medium'),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'reportID': id,
+      'title': title,
+      'location': location,
+      'description': description,
+      'reportedBy': reportedBy,
+      'reportedDate': reportedDate,
+      'dueDate': dueDate,
+      'status': status.key,
+      'priority': priority.key,
+    };
+  }
 }

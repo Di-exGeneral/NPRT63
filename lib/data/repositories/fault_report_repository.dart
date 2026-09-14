@@ -1,15 +1,29 @@
 import 'package:hydroalert_reports/domain/models/fault_report.dart';
+import 'package:hydroalert_reports/services/api_service.dart';
 
 abstract class FaultReportRepository {
+  ApiService get apiService;
   List<FaultReport> getReports();
   FaultReport? getReportById(String id);
   void updateReportStatus(String id, ReportStatus newStatus);
   void verifyReport(String id);
   void addReport(FaultReport report);
   void deleteReport(String id);
+
+  Future<List<FaultReport>> fetchReportsFromApi();
+  Future<FaultReport> createReportOnApi(FaultReport report);
+  Future<FaultReport?> updateReportStatusOnApi(String id, ReportStatus newStatus, {required String changedBy});
 }
 
 class InMemoryFaultReportRepository implements FaultReportRepository {
+  final ApiService _apiService;
+
+  InMemoryFaultReportRepository({ApiService? apiService})
+      : _apiService = apiService ?? ApiService();
+
+  @override
+  ApiService get apiService => _apiService;
+
   final List<FaultReport> _reports = [
     const FaultReport(
       id: 'REP-101',
@@ -99,5 +113,151 @@ class InMemoryFaultReportRepository implements FaultReportRepository {
   @override
   void deleteReport(String id) {
     _reports.removeWhere((r) => r.id == id);
+  }
+
+  @override
+  Future<List<FaultReport>> fetchReportsFromApi() async {
+    try {
+      final response = await _apiService.get('/fault-reports/');
+      if (response is List) {
+        final fetched = response
+            .map((item) => FaultReport.fromJson(item as Map<String, dynamic>))
+            .toList();
+        _reports.clear();
+        _reports.addAll(fetched);
+        return List.unmodifiable(_reports);
+      }
+    } catch (_) {
+      // Return cached reports on network issue
+    }
+    return getReports();
+  }
+
+  @override
+  Future<FaultReport> createReportOnApi(FaultReport report) async {
+    final response = await _apiService.post('/fault-reports/', body: report.toJson());
+    final created = response is Map<String, dynamic>
+        ? FaultReport.fromJson(response)
+        : report;
+    addReport(created);
+    return created;
+  }
+
+  @override
+  Future<FaultReport?> updateReportStatusOnApi(
+    String id,
+    ReportStatus newStatus, {
+    required String changedBy,
+  }) async {
+    try {
+      final response = await _apiService.patch(
+        '/fault-reports/$id/status',
+        queryParameters: {'changedBy': changedBy},
+        body: {'status': newStatus.label},
+      );
+      updateReportStatus(id, newStatus);
+      if (response is Map<String, dynamic>) {
+        return FaultReport.fromJson(response);
+      }
+    } catch (_) {
+      // In offline / in-memory mode fallback to local status update
+      updateReportStatus(id, newStatus);
+    }
+    return getReportById(id);
+  }
+}
+
+class ApiFaultReportRepository implements FaultReportRepository {
+  final ApiService _apiService;
+  final List<FaultReport> _cachedReports = [];
+
+  ApiFaultReportRepository({ApiService? apiService})
+      : _apiService = apiService ?? ApiService();
+
+  @override
+  ApiService get apiService => _apiService;
+
+  @override
+  List<FaultReport> getReports() => List.unmodifiable(_cachedReports);
+
+  @override
+  FaultReport? getReportById(String id) {
+    try {
+      return _cachedReports.firstWhere((r) => r.id == id);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  @override
+  void updateReportStatus(String id, ReportStatus newStatus) {
+    final index = _cachedReports.indexWhere((r) => r.id == id);
+    if (index != -1) {
+      _cachedReports[index] = _cachedReports[index].copyWith(status: newStatus);
+    }
+  }
+
+  @override
+  void verifyReport(String id) {
+    final index = _cachedReports.indexWhere((r) => r.id == id);
+    if (index != -1) {
+      _cachedReports[index] = _cachedReports[index].copyWith(status: ReportStatus.verified);
+    }
+  }
+
+  @override
+  void addReport(FaultReport report) {
+    _cachedReports.insert(0, report);
+  }
+
+  @override
+  void deleteReport(String id) {
+    _cachedReports.removeWhere((r) => r.id == id);
+  }
+
+  @override
+  Future<List<FaultReport>> fetchReportsFromApi() async {
+    final response = await _apiService.get('/fault-reports/');
+    if (response is List) {
+      final fetched = response
+          .map((item) => FaultReport.fromJson(item as Map<String, dynamic>))
+          .toList();
+      _cachedReports.clear();
+      _cachedReports.addAll(fetched);
+    }
+    return List.unmodifiable(_cachedReports);
+  }
+
+  @override
+  Future<FaultReport> createReportOnApi(FaultReport report) async {
+    final response = await _apiService.post('/fault-reports/', body: report.toJson());
+    final created = response is Map<String, dynamic>
+        ? FaultReport.fromJson(response)
+        : report;
+    addReport(created);
+    return created;
+  }
+
+  @override
+  Future<FaultReport?> updateReportStatusOnApi(
+    String id,
+    ReportStatus newStatus, {
+    required String changedBy,
+  }) async {
+    final response = await _apiService.patch(
+      '/fault-reports/$id/status',
+      queryParameters: {'changedBy': changedBy},
+      body: {'status': newStatus.label},
+    );
+    updateReportStatus(id, newStatus);
+    if (response is Map<String, dynamic>) {
+      final updated = FaultReport.fromJson(response);
+      final idx = _cachedReports.indexWhere((r) => r.id == id);
+      if (idx != -1) {
+        _cachedReports[idx] = updated;
+      }
+      return updated;
+    }
+    return getReportById(id);
   }
 }

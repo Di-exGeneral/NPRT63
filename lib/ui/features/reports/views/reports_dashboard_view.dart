@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hydroalert_reports/domain/models/fault_report.dart';
+import 'package:hydroalert_reports/domain/models/user_role.dart';
 import 'package:hydroalert_reports/ui/core/theme.dart';
 import 'package:hydroalert_reports/ui/features/reports/view_models/reports_view_model.dart';
 import 'package:hydroalert_reports/ui/features/reports/views/widgets/fault_report_card.dart';
@@ -47,21 +48,21 @@ class _ReportsDashboardViewState extends State<ReportsDashboardView> {
             Text('HydroAlert Help & Info', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
           ],
         ),
-        content: const Column(
+        content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
+            const Text(
               'HydroAlert Maintenance Reports System',
               style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             Text(
               '• Click "View Details" on any report to inspect full metadata, verify the ticket, or update its status (Pending, In Progress, Completed, Verified).\n'
               '• Use the search bar to filter tickets by title, sector, description, or reporter.\n'
-              '• Click "Filters" to apply status, priority, or sorting filters.\n'
-              '• Click "+ New Report" to log a new maintenance ticket.',
-              style: TextStyle(fontSize: 13.5, height: 1.5, color: AppColors.textSecondary),
+              '• Click "Filters" to apply status, priority, or sorting filters.'
+              '${widget.viewModel.isAdmin ? '' : '\n• Click "+ New Report" to log a new maintenance ticket.'}',
+              style: const TextStyle(fontSize: 13.5, height: 1.5, color: AppColors.textSecondary),
             ),
           ],
         ),
@@ -265,43 +266,55 @@ class _ReportsDashboardViewState extends State<ReportsDashboardView> {
 
               // Right Profile Card
               if (!isCompact) ...[
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF9FAFB),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: AppColors.border, width: 1),
-                  ),
-                  child: const Row(
-                    children: [
-                      Icon(
-                        Icons.person_outline_rounded,
-                        size: 20,
-                        color: AppColors.textSecondary,
+                InkWell(
+                  borderRadius: BorderRadius.circular(8),
+                  onTap: () {
+                    final nextRole = widget.viewModel.isAdmin ? UserRole.maintenance : UserRole.admin;
+                    widget.viewModel.setUserRole(nextRole);
+                  },
+                  child: Tooltip(
+                    message: 'Click to switch role (${widget.viewModel.isAdmin ? "Switch to Maintenance" : "Switch to Administrator"})',
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF9FAFB),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: AppColors.border, width: 1),
                       ),
-                      SizedBox(width: 8),
-                      Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      child: Row(
                         children: [
-                          Text(
-                            'Maintenance User',
-                            style: TextStyle(
-                              fontSize: 12.5,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.textPrimary,
-                            ),
+                          const Icon(
+                            Icons.person_outline_rounded,
+                            size: 20,
+                            color: AppColors.textSecondary,
                           ),
-                          Text(
-                            'user@example.com',
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: AppColors.textMuted,
-                            ),
+                          const SizedBox(width: 8),
+                          Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                widget.viewModel.currentUserRole.label,
+                                style: const TextStyle(
+                                  fontSize: 12.5,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.textPrimary,
+                                ),
+                              ),
+                              const Text(
+                                'user@example.com',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: AppColors.textMuted,
+                                ),
+                              ),
+                            ],
                           ),
+                          const SizedBox(width: 6),
+                          const Icon(Icons.swap_horiz_rounded, size: 16, color: AppColors.textLight),
                         ],
                       ),
-                    ],
+                    ),
                   ),
                 ),
                 const SizedBox(width: 14),
@@ -416,19 +429,21 @@ class _ReportsDashboardViewState extends State<ReportsDashboardView> {
           ),
         ),
 
-        const SizedBox(width: 12),
-
-        // Add Report Button
-        ElevatedButton.icon(
-          onPressed: () => NewReportDialog.show(context, widget.viewModel),
-          icon: const Icon(Icons.add_rounded, size: 18, color: Colors.white),
-          label: const Text('New Report'),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.primaryBlue,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        // Add Report Button - Only available to non-admin roles
+        if (!widget.viewModel.isAdmin) ...[
+          const SizedBox(width: 12),
+          ElevatedButton.icon(
+            key: const ValueKey('new_report_button'),
+            onPressed: () => NewReportDialog.show(context, widget.viewModel),
+            icon: const Icon(Icons.add_rounded, size: 18, color: Colors.white),
+            label: const Text('New Report'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primaryBlue,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
           ),
-        ),
+        ],
       ],
     );
   }

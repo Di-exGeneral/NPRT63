@@ -25,13 +25,19 @@ class _NewReportDialogState extends State<NewReportDialog> {
   final _titleController = TextEditingController();
   final _locationController = TextEditingController();
   final _descriptionController = TextEditingController();
-  final _reporterController = TextEditingController(text: 'Maintenance User');
+  late final TextEditingController _reporterController;
   final _dueDateController = TextEditingController(
     text: DateTime.now().add(const Duration(days: 2)).toString().split(' ').first,
   );
 
   ReportPriority _selectedPriority = ReportPriority.medium;
   final ReportStatus _selectedStatus = ReportStatus.pending;
+
+  @override
+  void initState() {
+    super.initState();
+    _reporterController = TextEditingController(text: widget.viewModel.currentUserRole.label);
+  }
 
   @override
   void dispose() {
@@ -44,6 +50,17 @@ class _NewReportDialogState extends State<NewReportDialog> {
   }
 
   void _submit() {
+    if (widget.viewModel.isAdmin || !widget.viewModel.canCreateFaultReport) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Admin users cannot submit fault reports.'),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
+
     if (_formKey.currentState?.validate() ?? false) {
       widget.viewModel.addNewReport(
         title: _titleController.text.trim(),
@@ -104,6 +121,35 @@ class _NewReportDialogState extends State<NewReportDialog> {
                     ],
                   ),
                   const Divider(height: 24, color: AppColors.borderSubtle),
+
+                  if (widget.viewModel.isAdmin) ...[
+                    Container(
+                      key: const ValueKey('admin_restriction_banner'),
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFEF2F2),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: const Color(0xFFFCA5A5)),
+                      ),
+                      child: const Row(
+                        children: [
+                          Icon(Icons.error_outline_rounded, color: Color(0xFFDC2626), size: 20),
+                          SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              'Access Restricted: Admin users are not permitted to create fault reports.',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF991B1B),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
 
                   // Title
                   const Text('Report Title', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textMuted)),
@@ -186,8 +232,15 @@ class _NewReportDialogState extends State<NewReportDialog> {
                       ),
                       const SizedBox(width: 12),
                       ElevatedButton(
-                        onPressed: _submit,
-                        child: const Text('Save Report'),
+                        key: const ValueKey('save_report_button'),
+                        onPressed: widget.viewModel.isAdmin ? null : _submit,
+                        style: widget.viewModel.isAdmin
+                            ? ElevatedButton.styleFrom(
+                                backgroundColor: Colors.grey.shade300,
+                                foregroundColor: Colors.grey.shade600,
+                              )
+                            : null,
+                        child: Text(widget.viewModel.isAdmin ? 'Creation Restricted' : 'Save Report'),
                       ),
                     ],
                   ),
