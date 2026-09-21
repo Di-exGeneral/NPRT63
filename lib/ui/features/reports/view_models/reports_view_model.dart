@@ -173,8 +173,11 @@ class ReportsViewModel extends ChangeNotifier {
     required ReportStatus status,
     required ReportPriority priority,
   }) {
-    if (isAdmin || !canCreateFaultReport) {
-      throw StateError('Admin users are not permitted to create fault reports.');
+    if (!canCreateFaultReport) {
+      if (isAdmin) {
+        throw StateError('Admin users are not permitted to create fault reports.');
+      }
+      throw StateError('Only Resident users are permitted to create fault reports.');
     }
     final newId = 'REP-${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}';
     final report = FaultReport(
@@ -190,6 +193,51 @@ class ReportsViewModel extends ChangeNotifier {
     );
     repository.addReport(report);
     _loadReports();
+  }
+
+  Future<FaultReport> createReportOnApi({
+    required String title,
+    required String location,
+    required String description,
+    required String reportedBy,
+    required String reportedDate,
+    required String dueDate,
+    required ReportStatus status,
+    required ReportPriority priority,
+  }) async {
+    if (!canCreateFaultReport) {
+      if (isAdmin) {
+        throw StateError('Admin users are not permitted to create fault reports.');
+      }
+      throw StateError('Only Resident users are permitted to create fault reports.');
+    }
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+    try {
+      final newId = 'REP-${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}';
+      final report = FaultReport(
+        id: newId,
+        title: title,
+        location: location,
+        description: description,
+        reportedBy: reportedBy,
+        reportedDate: reportedDate,
+        dueDate: dueDate,
+        status: status,
+        priority: priority,
+      );
+      final created = await repository.createReportOnApi(report, userRole: _currentUserRole);
+      _loadReports();
+      return created;
+    } catch (e) {
+      _errorMessage = e.toString();
+      notifyListeners();
+      rethrow;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 
   void deleteReport(String id) {

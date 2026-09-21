@@ -9,6 +9,20 @@ class NewReportDialog extends StatefulWidget {
   const NewReportDialog({super.key, required this.viewModel});
 
   static Future<void> show(BuildContext context, ReportsViewModel viewModel) {
+    if (!viewModel.canCreateFaultReport) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            viewModel.isAdmin
+                ? 'Admin users are not permitted to create fault reports.'
+                : 'Only Resident users are permitted to create fault reports.',
+          ),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+      return Future.value();
+    }
     return showDialog(
       context: context,
       barrierColor: Colors.black.withValues(alpha: 0.5),
@@ -50,12 +64,16 @@ class _NewReportDialogState extends State<NewReportDialog> {
   }
 
   void _submit() {
-    if (widget.viewModel.isAdmin || !widget.viewModel.canCreateFaultReport) {
+    if (!widget.viewModel.canCreateFaultReport) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Admin users cannot submit fault reports.'),
+        SnackBar(
+          content: Text(
+            widget.viewModel.isAdmin
+                ? 'Admin users cannot submit fault reports.'
+                : 'Only Resident users can submit fault reports.',
+          ),
           backgroundColor: Colors.red,
-          duration: Duration(seconds: 2),
+          duration: const Duration(seconds: 2),
         ),
       );
       return;
@@ -122,7 +140,7 @@ class _NewReportDialogState extends State<NewReportDialog> {
                   ),
                   const Divider(height: 24, color: AppColors.borderSubtle),
 
-                  if (widget.viewModel.isAdmin) ...[
+                  if (!widget.viewModel.canCreateFaultReport) ...[
                     Container(
                       key: const ValueKey('admin_restriction_banner'),
                       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
@@ -131,14 +149,16 @@ class _NewReportDialogState extends State<NewReportDialog> {
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(color: const Color(0xFFFCA5A5)),
                       ),
-                      child: const Row(
+                      child: Row(
                         children: [
-                          Icon(Icons.error_outline_rounded, color: Color(0xFFDC2626), size: 20),
-                          SizedBox(width: 10),
+                          const Icon(Icons.error_outline_rounded, color: Color(0xFFDC2626), size: 20),
+                          const SizedBox(width: 10),
                           Expanded(
                             child: Text(
-                              'Access Restricted: Admin users are not permitted to create fault reports.',
-                              style: TextStyle(
+                              widget.viewModel.isAdmin
+                                  ? 'Access Restricted: Admin users are not permitted to create fault reports.'
+                                  : 'Access Restricted: Only Resident users are permitted to create fault reports.',
+                              style: const TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w600,
                                 color: Color(0xFF991B1B),
@@ -233,14 +253,14 @@ class _NewReportDialogState extends State<NewReportDialog> {
                       const SizedBox(width: 12),
                       ElevatedButton(
                         key: const ValueKey('save_report_button'),
-                        onPressed: widget.viewModel.isAdmin ? null : _submit,
-                        style: widget.viewModel.isAdmin
+                        onPressed: !widget.viewModel.canCreateFaultReport ? null : _submit,
+                        style: !widget.viewModel.canCreateFaultReport
                             ? ElevatedButton.styleFrom(
                                 backgroundColor: Colors.grey.shade300,
                                 foregroundColor: Colors.grey.shade600,
                               )
                             : null,
-                        child: Text(widget.viewModel.isAdmin ? 'Creation Restricted' : 'Save Report'),
+                        child: Text(!widget.viewModel.canCreateFaultReport ? 'Creation Restricted' : 'Save Report'),
                       ),
                     ],
                   ),

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
+import 'package:hydroalert_reports/core/constants/app_constants.dart';
 
 class ApiException implements Exception {
   final int statusCode;
@@ -24,7 +25,7 @@ class ApiService {
   ApiService({
     String? baseUrl,
     http.Client? client,
-  })  : baseUrl = baseUrl ?? 'http://127.0.0.1:8000',
+  })  : baseUrl = baseUrl ?? AppConstants.baseUrl,
         _client = client ?? http.Client();
 
   Uri _buildUri(String endpoint, [Map<String, dynamic>? queryParameters]) {

@@ -429,8 +429,8 @@ class _ReportsDashboardViewState extends State<ReportsDashboardView> {
           ),
         ),
 
-        // Add Report Button - Only available to non-admin roles
-        if (!widget.viewModel.isAdmin) ...[
+        // Add Report Button - Only available to Resident role
+        if (widget.viewModel.canCreateFaultReport) ...[
           const SizedBox(width: 12),
           ElevatedButton.icon(
             key: const ValueKey('new_report_button'),

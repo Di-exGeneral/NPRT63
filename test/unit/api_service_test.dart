@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
+import 'package:hydroalert_reports/core/constants/app_constants.dart';
 import 'package:hydroalert_reports/services/api_service.dart';
 
 class MockHttpClient extends http.BaseClient {
@@ -16,7 +17,7 @@ void main() {
   group('ApiService Tests', () {
     test('initializes with default or custom baseUrl', () {
       final defaultService = ApiService();
-      expect(defaultService.baseUrl, 'http://127.0.0.1:8000');
+      expect(defaultService.baseUrl, AppConstants.baseUrl);
 
       final customService = ApiService(baseUrl: 'https://api.hydroalert.gov');
       expect(customService.baseUrl, 'https://api.hydroalert.gov');

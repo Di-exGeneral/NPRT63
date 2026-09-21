@@ -627,7 +627,7 @@ class MainDashboardView extends StatelessWidget {
               color: AppColors.textPrimary,
             ),
           ),
-          if (!viewModel.isAdmin) ...[
+          if (viewModel.canCreateFaultReport) ...[
             SizedBox(
               width: double.infinity,
               child: OutlinedButton.icon(

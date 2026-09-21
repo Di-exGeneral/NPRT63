@@ -10,7 +10,12 @@ enum UserRole {
   const UserRole(this.key, this.label);
 
   bool get isAdmin => this == UserRole.admin;
-  bool get canCreateFaultReport => this != UserRole.admin;
+  bool get isMaintenance => this == UserRole.maintenance;
+  bool get isResident => this == UserRole.resident;
+  bool get isITStaff => this == UserRole.itStaff;
+  bool get canCreateFaultReport => this == UserRole.resident;
+  bool get canManageReports => this == UserRole.admin || this == UserRole.itStaff;
+  bool get canUpdateStatus => this == UserRole.admin || this == UserRole.maintenance;
 
   static UserRole fromString(String? val) {
     if (val == null) return UserRole.maintenance;

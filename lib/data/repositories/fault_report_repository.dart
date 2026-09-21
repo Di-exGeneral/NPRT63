@@ -1,4 +1,5 @@
 import 'package:hydroalert_reports/domain/models/fault_report.dart';
+import 'package:hydroalert_reports/domain/models/user_role.dart';
 import 'package:hydroalert_reports/services/api_service.dart';
 
 abstract class FaultReportRepository {
@@ -11,8 +12,10 @@ abstract class FaultReportRepository {
   void deleteReport(String id);
 
   Future<List<FaultReport>> fetchReportsFromApi();
-  Future<FaultReport> createReportOnApi(FaultReport report);
+  Future<FaultReport?> fetchReportByIdFromApi(String id);
+  Future<FaultReport> createReportOnApi(FaultReport report, {UserRole? userRole});
   Future<FaultReport?> updateReportStatusOnApi(String id, ReportStatus newStatus, {required String changedBy});
+  Future<FaultReport?> verifyReportOnApi(String id, {required String changedBy});
 }
 
 class InMemoryFaultReportRepository implements FaultReportRepository {
@@ -126,6 +129,13 @@ class InMemoryFaultReportRepository implements FaultReportRepository {
         _reports.clear();
         _reports.addAll(fetched);
         return List.unmodifiable(_reports);
+      } else if (response is Map<String, dynamic> && response['reports'] is List) {
+        final fetched = (response['reports'] as List)
+            .map((item) => FaultReport.fromJson(item as Map<String, dynamic>))
+            .toList();
+        _reports.clear();
+        _reports.addAll(fetched);
+        return List.unmodifiable(_reports);
       }
     } catch (_) {
       // Return cached reports on network issue
@@ -134,13 +144,49 @@ class InMemoryFaultReportRepository implements FaultReportRepository {
   }
 
   @override
-  Future<FaultReport> createReportOnApi(FaultReport report) async {
-    final response = await _apiService.post('/fault-reports/', body: report.toJson());
-    final created = response is Map<String, dynamic>
-        ? FaultReport.fromJson(response)
-        : report;
-    addReport(created);
-    return created;
+  Future<FaultReport?> fetchReportByIdFromApi(String id) async {
+    try {
+      final response = await _apiService.get('/fault-reports/$id');
+      if (response is Map<String, dynamic>) {
+        final fetched = FaultReport.fromJson(response);
+        final index = _reports.indexWhere((r) => r.id == id);
+        if (index != -1) {
+          _reports[index] = fetched;
+        } else {
+          _reports.add(fetched);
+        }
+        return fetched;
+      }
+    } catch (_) {
+      // Return cached local report on network issue
+    }
+    return getReportById(id);
+  }
+
+  @override
+  Future<FaultReport> createReportOnApi(FaultReport report, {UserRole? userRole}) async {
+    if (userRole != null && !userRole.canCreateFaultReport) {
+      throw StateError(
+        'Role authorization error: ${userRole.label} is not permitted to create fault reports. Only Resident users are authorized.',
+      );
+    }
+    try {
+      final payload = {
+        ...report.toJson(),
+        'reportID': report.id,
+        'residentID': report.reportedBy,
+        'areaID': report.location,
+      };
+      final response = await _apiService.post('/fault-reports/', body: payload);
+      final created = response is Map<String, dynamic>
+          ? FaultReport.fromJson(response)
+          : report;
+      addReport(created);
+      return created;
+    } catch (_) {
+      addReport(report);
+      return report;
+    }
   }
 
   @override
@@ -164,6 +210,11 @@ class InMemoryFaultReportRepository implements FaultReportRepository {
       updateReportStatus(id, newStatus);
     }
     return getReportById(id);
+  }
+
+  @override
+  Future<FaultReport?> verifyReportOnApi(String id, {required String changedBy}) {
+    return updateReportStatusOnApi(id, ReportStatus.verified, changedBy: changedBy);
   }
 }
 
@@ -217,25 +268,85 @@ class ApiFaultReportRepository implements FaultReportRepository {
 
   @override
   Future<List<FaultReport>> fetchReportsFromApi() async {
-    final response = await _apiService.get('/fault-reports/');
-    if (response is List) {
-      final fetched = response
-          .map((item) => FaultReport.fromJson(item as Map<String, dynamic>))
-          .toList();
-      _cachedReports.clear();
-      _cachedReports.addAll(fetched);
+    try {
+      final response = await _apiService.get('/fault-reports/');
+      if (response is List) {
+        final fetched = response
+            .map((item) => FaultReport.fromJson(item as Map<String, dynamic>))
+            .toList();
+        _cachedReports.clear();
+        _cachedReports.addAll(fetched);
+      } else if (response is Map<String, dynamic> && response['reports'] is List) {
+        final fetched = (response['reports'] as List)
+            .map((item) => FaultReport.fromJson(item as Map<String, dynamic>))
+            .toList();
+        _cachedReports.clear();
+        _cachedReports.addAll(fetched);
+      }
+      return List.unmodifiable(_cachedReports);
+    } on ApiException {
+      rethrow;
+    } catch (e) {
+      throw ApiException(
+        statusCode: 500,
+        message: 'Failed to fetch fault reports: $e',
+      );
     }
-    return List.unmodifiable(_cachedReports);
   }
 
   @override
-  Future<FaultReport> createReportOnApi(FaultReport report) async {
-    final response = await _apiService.post('/fault-reports/', body: report.toJson());
-    final created = response is Map<String, dynamic>
-        ? FaultReport.fromJson(response)
-        : report;
-    addReport(created);
-    return created;
+  Future<FaultReport?> fetchReportByIdFromApi(String id) async {
+    try {
+      final response = await _apiService.get('/fault-reports/$id');
+      if (response is Map<String, dynamic>) {
+        final fetched = FaultReport.fromJson(response);
+        final index = _cachedReports.indexWhere((r) => r.id == id);
+        if (index != -1) {
+          _cachedReports[index] = fetched;
+        } else {
+          _cachedReports.add(fetched);
+        }
+        return fetched;
+      }
+      return null;
+    } on ApiException {
+      rethrow;
+    } catch (e) {
+      throw ApiException(
+        statusCode: 500,
+        message: 'Failed to fetch fault report $id: $e',
+      );
+    }
+  }
+
+  @override
+  Future<FaultReport> createReportOnApi(FaultReport report, {UserRole? userRole}) async {
+    if (userRole != null && !userRole.canCreateFaultReport) {
+      throw StateError(
+        'Role authorization error: ${userRole.label} is not permitted to create fault reports. Only Resident users are authorized.',
+      );
+    }
+    try {
+      final payload = {
+        ...report.toJson(),
+        'reportID': report.id,
+        'residentID': report.reportedBy,
+        'areaID': report.location,
+      };
+      final response = await _apiService.post('/fault-reports/', body: payload);
+      final created = response is Map<String, dynamic>
+          ? FaultReport.fromJson(response)
+          : report;
+      addReport(created);
+      return created;
+    } on ApiException {
+      rethrow;
+    } catch (e) {
+      throw ApiException(
+        statusCode: 500,
+        message: 'Failed to create fault report: $e',
+      );
+    }
   }
 
   @override
@@ -244,20 +355,34 @@ class ApiFaultReportRepository implements FaultReportRepository {
     ReportStatus newStatus, {
     required String changedBy,
   }) async {
-    final response = await _apiService.patch(
-      '/fault-reports/$id/status',
-      queryParameters: {'changedBy': changedBy},
-      body: {'status': newStatus.label},
-    );
-    updateReportStatus(id, newStatus);
-    if (response is Map<String, dynamic>) {
-      final updated = FaultReport.fromJson(response);
-      final idx = _cachedReports.indexWhere((r) => r.id == id);
-      if (idx != -1) {
-        _cachedReports[idx] = updated;
+    try {
+      final response = await _apiService.patch(
+        '/fault-reports/$id/status',
+        queryParameters: {'changedBy': changedBy},
+        body: {'status': newStatus.label},
+      );
+      updateReportStatus(id, newStatus);
+      if (response is Map<String, dynamic>) {
+        final updated = FaultReport.fromJson(response);
+        final idx = _cachedReports.indexWhere((r) => r.id == id);
+        if (idx != -1) {
+          _cachedReports[idx] = updated;
+        }
+        return updated;
       }
-      return updated;
+      return getReportById(id);
+    } on ApiException {
+      rethrow;
+    } catch (e) {
+      throw ApiException(
+        statusCode: 500,
+        message: 'Failed to update status for report $id: $e',
+      );
     }
-    return getReportById(id);
+  }
+
+  @override
+  Future<FaultReport?> verifyReportOnApi(String id, {required String changedBy}) {
+    return updateReportStatusOnApi(id, ReportStatus.verified, changedBy: changedBy);
   }
 }
