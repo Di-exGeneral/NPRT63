@@ -1,6 +1,6 @@
 fastapi
 uvicorn
-sqlalchemy
+sqlalchemy==2.0.23
 psycopg2-binary
 python-jose
 passlib
