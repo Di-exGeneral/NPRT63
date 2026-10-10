@@ -65,6 +65,20 @@ def update_status(reportID: str, update: FaultReportUpdate, changedBy: str, db: 
                 create_notification(db, user.userID, "Report Status Updated", f"Your fault report status has been updated to {update.status}.", "report")
     return result
 
+@router.get("/assigned/me")
+def get_my_assigned_reports(db: Session = Depends(get_db), current_user: dict = Depends(require_role("MaintenanceTeam"))):
+    from app.models.maintenance_assignment import MaintenanceAssignment
+    from app.models.maintenance_team import MaintenanceTeam
+    team = db.query(MaintenanceTeam).filter(MaintenanceTeam.userID == current_user["sub"]).first()
+    if not team:
+        raise HTTPException(status_code=404, detail="Maintenance team profile not found")
+    assignments = db.query(MaintenanceAssignment).filter(MaintenanceAssignment.teamID == team.teamID).all()
+    report_ids = [a.reportID for a in assignments]
+    if not report_ids:
+        return []
+    reports = db.query(FaultReport).filter(FaultReport.reportID.in_(report_ids)).all()
+    return reports
+
 @router.get("/{reportID}/history", dependencies=[Depends(get_current_user)])
 def get_history(reportID: str, db: Session = Depends(get_db)):
     return get_report_history(db, reportID)
