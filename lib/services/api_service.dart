@@ -21,10 +21,12 @@ class ApiException implements Exception {
 class ApiService {
   String baseUrl;
   final http.Client _client;
+  final String? token;
 
   ApiService({
     String? baseUrl,
     http.Client? client,
+    this.token,
   })  : baseUrl = baseUrl ?? AppConstants.baseUrl,
         _client = client ?? http.Client();
 
@@ -46,6 +48,9 @@ class ApiService {
       'Content-Type': 'application/json',
       'Accept': 'application/json',
     };
+    if (token != null) {
+      headers['Authorization'] = 'Bearer $token';
+    }
     if (customHeaders != null) {
       headers.addAll(customHeaders);
     }

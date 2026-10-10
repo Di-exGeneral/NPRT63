@@ -121,7 +121,7 @@ class InMemoryFaultReportRepository implements FaultReportRepository {
   @override
   Future<List<FaultReport>> fetchReportsFromApi() async {
     try {
-      final response = await _apiService.get('/fault-reports/');
+      final response = await _apiService.get('/fault-reports/assigned/me');
       if (response is List) {
         final fetched = response
             .map((item) => FaultReport.fromJson(item as Map<String, dynamic>))
@@ -222,8 +222,8 @@ class ApiFaultReportRepository implements FaultReportRepository {
   final ApiService _apiService;
   final List<FaultReport> _cachedReports = [];
 
-  ApiFaultReportRepository({ApiService? apiService})
-      : _apiService = apiService ?? ApiService();
+  ApiFaultReportRepository({ApiService? apiService, String? token})
+      : _apiService = apiService ?? ApiService(token: token);
 
   @override
   ApiService get apiService => _apiService;
@@ -269,7 +269,7 @@ class ApiFaultReportRepository implements FaultReportRepository {
   @override
   Future<List<FaultReport>> fetchReportsFromApi() async {
     try {
-      final response = await _apiService.get('/fault-reports/');
+      final response = await _apiService.get('/fault-reports/assigned/me');
       if (response is List) {
         final fetched = response
             .map((item) => FaultReport.fromJson(item as Map<String, dynamic>))

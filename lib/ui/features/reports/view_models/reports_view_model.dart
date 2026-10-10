@@ -30,7 +30,7 @@ class ReportsViewModel extends ChangeNotifier {
     _loadReports();
   }
 
-  AppScreen _currentScreen = AppScreen.allReports;
+  AppScreen _currentScreen = AppScreen.dashboard;
   List<FaultReport> _allReports = [];
   String _searchQuery = '';
   ReportStatus? _selectedStatusFilter;
