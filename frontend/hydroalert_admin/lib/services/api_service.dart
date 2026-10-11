@@ -225,16 +225,20 @@ class ApiService {
       );
 
   // Maintenance teams
-  Future<List<MaintenanceTeam>> getTeams() => _call(
+  /*Future<List<MaintenanceTeam>> getTeams() => _call(
         () => _dio.get('/maintenance/teams'),
         (d) => _list(d, MaintenanceTeam.fromJson),
-      );
+      );*/
+
+  Future<List<MaintenanceTeam>> getTeams() async => [];
 
   // Emergency alerts
-  Future<List<EmergencyAlert>> getAlerts() => _call(
+ /* Future<List<EmergencyAlert>> getAlerts() => _call(
         () => _dio.get('/alerts/'),
         (d) => _list(d, EmergencyAlert.fromJson),
-      );
+      );*/
+
+  Future<List<EmergencyAlert>> getAlerts() async => [];
 
   Future<EmergencyAlert> sendAlert({
     required String areaID,

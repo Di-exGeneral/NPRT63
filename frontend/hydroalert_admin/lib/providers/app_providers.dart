@@ -115,19 +115,15 @@ class AdminProvider extends ChangeNotifier {
     notifyListeners();
     try {
       final results = await Future.wait([
-        api.getSummary(),
         api.getAreas(),
         api.getSchedules(),
         api.getReports(),
         api.getTeams(),
-        api.getAlerts(),
       ]);
-      summary = results[0] as DashboardSummary;
-      areas = results[1] as List<Area>;
-      schedules = results[2] as List<OutageSchedule>;
-      reports = results[3] as List<FaultReport>;
-      teams = results[4] as List<MaintenanceTeam>;
-      alerts = results[5] as List<EmergencyAlert>;
+      areas = results[0] as List<Area>;
+      schedules = results[1] as List<OutageSchedule>;
+      reports = results[2] as List<FaultReport>;
+      teams = results[3] as List<MaintenanceTeam>;
     } catch (e) {
       error = e.toString();
     } finally {
@@ -139,15 +135,13 @@ class AdminProvider extends ChangeNotifier {
   Future<void> _refresh() async {
     try {
       final results = await Future.wait([
-        api.getSummary(),
         api.getSchedules(),
         api.getReports(),
         api.getTeams(),
       ]);
-      summary = results[0] as DashboardSummary;
-      schedules = results[1] as List<OutageSchedule>;
-      reports = results[2] as List<FaultReport>;
-      teams = results[3] as List<MaintenanceTeam>;
+      schedules = results[0] as List<OutageSchedule>;
+      reports = results[1] as List<FaultReport>;
+      teams = results[2] as List<MaintenanceTeam>;
     } catch (_) {
       // Keep the current data; the next full reload will surface errors.
     }
