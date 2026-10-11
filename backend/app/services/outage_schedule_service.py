@@ -19,7 +19,7 @@ def create_outage_schedule(db: Session, schedule: OutageScheduleCreate) -> Outag
     return new_schedule
 
 def get_all_schedules(db: Session):
-    return db.query(OutageSchedule).all()
+    return db.query(OutageSchedule).order_by(OutageSchedule.startTime.desc()).all()
 
 def get_schedules_by_area(db: Session, areaID: str):
     return db.query(OutageSchedule).filter(OutageSchedule.areaID == areaID).all()
@@ -40,3 +40,10 @@ def delete_schedule(db: Session, scheduleID: str):
     if schedule:
         db.delete(schedule)
         db.commit()
+
+def update_schedule(db: Session, schedule: OutageSchedule, changes: dict) -> OutageSchedule:
+    for field, value in changes.items():
+        setattr(schedule, field, value)
+    db.commit()
+    db.refresh(schedule)
+    return schedule

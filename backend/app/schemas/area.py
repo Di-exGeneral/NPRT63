@@ -5,6 +5,10 @@ class AreaCreate(BaseModel):
     suburbName: str
     municipalityName: str
 
+class AreaUpdate(BaseModel):
+    suburbName: str
+    municipalityName: str
+
 class AreaResponse(BaseModel):
     areaID: str
     suburbName: str

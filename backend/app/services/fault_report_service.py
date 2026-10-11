@@ -4,6 +4,7 @@ from app.models.report_history import ReportHistory
 from app.models.resident import Resident
 from app.models.area import Area
 from app.models.user import User
+from app.models.photo import Photo
 from app.schemas.fault_report import FaultReportCreate
 import uuid
 
@@ -12,6 +13,7 @@ def serialize_fault_report(db: Session, report: FaultReport) -> dict:
     resident and area names so admin/mobile clients don't show raw IDs."""
     data = {
         "reportID": report.reportID,
+        "title": report.title,
         "residentID": report.residentID,
         "areaID": report.areaID,
         "description": report.description,
@@ -20,6 +22,7 @@ def serialize_fault_report(db: Session, report: FaultReport) -> dict:
         "timestamp": report.timestamp,
         "residentName": None,
         "areaName": None,
+        "photos": [p.photoURL for p in db.query(Photo).filter(Photo.reportID == report.reportID).all()],
     }
     resident = db.query(Resident).filter(Resident.residentID == report.residentID).first()
     if resident:
@@ -34,6 +37,7 @@ def serialize_fault_report(db: Session, report: FaultReport) -> dict:
 def create_fault_report(db: Session, report: FaultReportCreate) -> FaultReport:
     new_report = FaultReport(
         reportID=str(uuid.uuid4()),
+        title=report.title,
         residentID=report.residentID,
         areaID=report.areaID,
         description=report.description,
@@ -46,7 +50,7 @@ def create_fault_report(db: Session, report: FaultReportCreate) -> FaultReport:
     return new_report
 
 def get_all_fault_reports(db: Session):
-    reports = db.query(FaultReport).all()
+    reports = db.query(FaultReport).order_by(FaultReport.timestamp.desc()).all()
     return [serialize_fault_report(db, r) for r in reports]
 
 def get_fault_report_by_id(db: Session, reportID: str):

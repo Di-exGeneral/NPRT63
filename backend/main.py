@@ -8,6 +8,11 @@ from app.routes import maintenance
 from app.routes import bug_reports
 from app.routes import audit_logs
 from app.routes import notifications
+from app.routes import alerts
+from app.routes import dashboard
+import logging
+from app.database import engine
+from app.models.emergency_alert import EmergencyAlert
 
 app = FastAPI(title="HydroAlert API", version="1.0.0")
 
@@ -30,6 +35,15 @@ app.include_router(maintenance.router, prefix="/maintenance", tags=["Maintenance
 app.include_router(bug_reports.router, prefix="/bug-reports", tags=["Bug Reports"])
 app.include_router(audit_logs.router, prefix="/audit-logs", tags=["Audit Logs"])
 app.include_router(notifications.router, prefix="/notifications", tags=["Notifications"])
+app.include_router(alerts.router, prefix="/alerts", tags=["Emergency Alerts"])
+app.include_router(dashboard.router, prefix="/dashboard", tags=["Dashboard"])
+
+@app.on_event("startup")
+def ensure_new_tables():
+    try:
+        EmergencyAlert.__table__.create(bind=engine, checkfirst=True)
+    except Exception:
+        logging.exception("Could not create emergencyalert table")
 
 @app.get("/")
 def root():

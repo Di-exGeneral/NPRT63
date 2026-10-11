@@ -14,6 +14,13 @@ class OutageScheduleCreate(BaseModel):
 class OutageScheduleUpdate(BaseModel):
     status: str
 
+class OutageScheduleEdit(BaseModel):
+    areaID: Optional[str] = None
+    startTime: Optional[datetime] = None
+    endTime: Optional[datetime] = None
+    description: Optional[str] = None
+    status: Optional[str] = None
+
 class OutageScheduleResponse(BaseModel):
     scheduleID: str
     areaID: str
