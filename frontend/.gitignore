@@ -43,3 +43,16 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# The root .gitignore ignores lib/, test/ and *.html; Flutter apps need them.
+!lib/
+!test/
+!**/web/index.html
+!.metadata
+!**/web/manifest.json
+!**/web/**/*.png
+!**/android/app/src/*/res/**/*.png
+!**/android/app/src/debug/
+!**/android/app/src/profile/
+!**/ios/Runner/Assets.xcassets/**
+!**/macos/Runner/Assets.xcassets/**
