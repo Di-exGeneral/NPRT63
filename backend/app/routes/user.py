@@ -53,3 +53,19 @@ def get_user(userID: str, db: Session = Depends(get_db)):
 def remove_user(userID: str, db: Session = Depends(get_db)):
     delete_user(db, userID)
     return {"message": "User deleted successfully"}
+
+@router.get("/maintenance-teams", dependencies=[Depends(require_role("MunicipalAdmin", "ITStaff"))])
+def get_maintenance_teams(db: Session = Depends(get_db)):
+    from app.models.maintenance_team import MaintenanceTeam
+    teams = db.query(User).join(MaintenanceTeam, User.userID == MaintenanceTeam.userID).all()
+    result = []
+    for user in teams:
+        team = db.query(MaintenanceTeam).filter(MaintenanceTeam.userID == user.userID).first()
+        result.append({
+            "teamID": team.teamID,
+            "userID": user.userID,
+            "username": user.username,
+            "email": user.email,
+            "phoneNumber": user.phoneNumber,
+        })
+    return result
